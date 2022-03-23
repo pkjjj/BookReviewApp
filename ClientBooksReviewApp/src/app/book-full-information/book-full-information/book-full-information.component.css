@@ -1,0 +1,46 @@
+p {
+  font-size: 5em;
+}
+
+h1 {
+  font-family: 'IntegralCF';
+  font-size: 6rem;
+  font-weight: 900;
+  font-style: normal;
+  color: white;
+  white-space: pre;
+}
+
+img {
+  -webkit-filter: grayscale(100%);
+  filter: grayscale(100%);
+}
+
+.cover-size {
+  width: 18rem;
+  height: 30rem;
+}
+
+.bg-container {
+  background-color: black;
+  width: 100%;
+}
+
+.img-container {
+  color: black !important;
+  background-color: rgb(255, 0, 0);
+}
+
+.half-color {
+  --left-color: rgb(255, 255, 255);
+  --right-color: rgb(255, 255, 255);
+  --right-percent: 50%;
+  --left-percent: 50%;
+	display: inline-block;
+  background: linear-gradient(to right, var(--left-color) var(--left-percent), var(--right-color) var(--right-percent));
+  background-clip: text;
+  transform: matrix(1, 0, 0, 1, 0, 0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+

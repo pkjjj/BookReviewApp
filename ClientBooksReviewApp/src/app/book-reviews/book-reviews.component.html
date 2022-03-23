@@ -1,0 +1,73 @@
+<div class="container">
+  <div class="row">
+
+    <div class="col-6"><p class="fs-1 text-center">COMMUNITY REVIEWS</p></div>
+    <div class="col-2">
+
+    </div>
+    <div class="col-4">
+      <div class="d-flex justify-content-center">
+        <app-search [isButtonStyleWarning]="true" [itemsForSearch]=""></app-search>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="row">
+
+    <div class="col-6">
+        <app-rating *ngIf="reviews[0].rating !== null" [rating]="reviews[0].rating" [backgroundColor]="backgroundColorForRating"></app-rating>
+    </div>
+    <div class="col-2">
+    </div>
+    <div class="col-4">
+    </div>
+
+  </div>
+
+  <hr class="bg-white border-2 border-top border-white">
+
+  <div class="row">
+    <p class="fs-min">Start your review of this book if you want.</p>
+  </div>
+
+  <div class="row">
+    <div class="2"><button class="btn btn-warning" (click)="checkOnAuthentication()">Write review</button></div>
+  </div>
+
+  <div *ngIf="show" class="row">
+    <app-review [book]=""></app-review>
+  </div>
+  <hr class="bg-white border-2 border-top border-white">
+
+  <!-- REVIEWS -->
+  <ng-container *ngFor="let review of reviews">
+    <div class="row mt-5">
+
+      <div class="col-2">
+
+      </div>
+      <div class="col-4">
+        <p class="fs-min font-color-gray">{{review.applicationUser.name}}</p>
+      </div>
+      <div class="col-4">
+        <p class="fs-min font-color-gray">{{review.created | dateWithoutTime}}</p>
+      </div>
+
+    </div>
+
+    <div class="row">
+
+      <div class="col-2">
+        <img src="data:image/png;base64,{{review.applicationUser.avatar}}" alt="Avatar" class="avatar-size">
+      </div>
+      <div class="col-10">
+        <p class="fs-medium several-lines" id={{review.id}}>{{review.description}}</p>
+        <a class="pointer" (click)="showAllLines(review.id)">...more</a>
+      </div>
+
+    </div>
+
+  </ng-container>
+
+</div>
