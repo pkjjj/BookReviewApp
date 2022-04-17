@@ -14,8 +14,6 @@ namespace BooksReviewApp.Mappers
             CreateMap<Book, BookDto>()
                 .ForMember(u => u.ImageCover, opt => opt.MapFrom(x => Convert.ToBase64String(x.ImageCover, 0, x.ImageCover.Length)));
             CreateMap<ReviewDto, Review>()
-                //.ForMember(u => u.ApplicationUserId, opt => opt.MapFrom(x => x.ApplicationUser.Id))
-                .ForMember(u => u.BookId, opt => opt.MapFrom(x => x.Book.Id))
                 .ForMember(u => u.Id, opt => opt.MapFrom(x => Guid.NewGuid()));
         }
     }

@@ -49,23 +49,11 @@ namespace Repositories
             }
         }
 
-        public virtual IEnumerable<TEntity> GetAllWithIncludedProperties<TProperty, TSecondProperty>(
-            Expression<Func<TEntity, IEnumerable<TProperty>>> parent, 
-            Expression<Func<TProperty, TSecondProperty>> child)
-        {
-            IQueryable<TEntity> query = _dbSet;
-
-            if (parent == null || child == null)
-            {
-                return Enumerable.Empty<TEntity>();
-            }
-
-            return query.Include(parent).ThenInclude(child).ToList();
-        }
-
         public virtual TEntity GetByOneByFilter(Expression<Func<TEntity, bool>> filter)
         {
-            return _dbSet.FirstOrDefault(filter);
+            return _dbSet
+                .AsNoTracking()
+                .FirstOrDefault(filter);
         }
 
         public virtual TEntity GetByID(object id)
@@ -75,15 +63,17 @@ namespace Repositories
 
         public virtual TEntity GetByID(string includeProperties, Expression<Func<TEntity, bool>> filter)
         {
-            TEntity query = null;
+            IQueryable<TEntity> query = _dbSet;
 
             foreach (var includeProperty in includeProperties.Split
                 (new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
             {
-                query = _dbSet.Include(includeProperty).FirstOrDefault(filter);
+                query = query.Include(includeProperty).AsNoTracking();
             }
 
-            return query;
+            var list = query.ToList();
+
+            return query.FirstOrDefault(filter);
         }
 
         public virtual void Insert(TEntity entity)

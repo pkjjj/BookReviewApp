@@ -12,7 +12,7 @@ namespace Entities.DTO
         public string Description { get; set; }
         public string Rating { get; set; }
         public DateTime Created { get; set; }
-        public ApplicationUser ApplicationUser { get; set; }
-        public Book Book { get; set; }
+        public string UserToken { get; set; }
+        public Guid BookId { get; set; }
     }
 }

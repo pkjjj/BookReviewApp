@@ -49,7 +49,7 @@ namespace BooksReviewApp.Controllers
             {
                 var book = _unitOfWork.BookRepository.GetById(book => book.Id == id, "Users");
 
-                book.Reviews = _unitOfWork.ReviewRepository.GetAll(review => review.BookId == id, "Book,ApplicationUser");
+                book.Reviews = _unitOfWork.ReviewRepository.GetAll(filter: review => review.BookId == id, includeProperties: "Book,ApplicationUser");
 
                 var bookDto = _mapper.Map<BookDto>(book);
 

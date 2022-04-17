@@ -16,18 +16,11 @@ namespace Repositories
         {
         }
 
-        public IEnumerable<Review> GetAll(Expression<Func<Review, bool>> filter)
+        public override IEnumerable<Review> GetAll(Expression<Func<Review, bool>> filter = null,
+            Func<IQueryable<Review>, IOrderedQueryable<Review>> orderBy = null,
+            string includeProperties = "")
         {
-            return base.GetAll(filter: filter);
-        }
-
-        public IEnumerable<Review> GetAll(string includeProperty)
-        {
-            return base.GetAll(includeProperties: includeProperty);
-        }
-        public IEnumerable<Review> GetAll(Expression<Func<Review, bool>> filter, string includeProperties)
-        {
-            return base.GetAll(filter: filter, includeProperties: includeProperties);
+            return base.GetAll(filter: filter, includeProperties: includeProperties, orderBy:orderBy);
         }
     }
 }

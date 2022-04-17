@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
+using Entities.Context;
 using Entities.DTO;
 using Entities.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Repositories.Interfaces;
 using System;
+using System.Data.Common;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
@@ -16,11 +18,13 @@ namespace BooksReviewApp.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly BookReviewerDataContext _context;
 
-        public ReviewController(IUnitOfWork unitOfWork, IMapper mapper)
+        public ReviewController(IUnitOfWork unitOfWork, IMapper mapper, BookReviewerDataContext context)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _context = context;
         }
 
         [HttpPost("SaveReview")]
@@ -33,14 +37,15 @@ namespace BooksReviewApp.Controllers
 
                 var review = _mapper.Map<Review>(reviewFromResponse);
 
-                var decodedToken = new JwtSecurityTokenHandler().ReadJwtToken(review.ApplicationUser.Token);
-                var userName = decodedToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+                var decodedToken = new JwtSecurityTokenHandler().ReadJwtToken(reviewFromResponse.UserToken);
+                var userId = decodedToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
-                var currentUser = _unitOfWork.UserRepository.GetByOneByFilter(c => c.UserName == userName);
+                var currentUser = _unitOfWork.UserRepository.GetByOneByFilter(c => c.Id == userId);
 
-                review.ApplicationUser = currentUser;
-                //review.ApplicationUserId = currentUser.Id;
-                //this.Entry(user).State = EntityState.Unchanged;
+                if (currentUser == null)
+                    throw new NullReferenceException();
+
+                review.ApplicationUserId = currentUser.Id;
 
                 _unitOfWork.ReviewRepository.Insert(review);
 
@@ -48,10 +53,31 @@ namespace BooksReviewApp.Controllers
 
                 return StatusCode(201);
             }
+            catch (NullReferenceException ex)
+            {
+                return BadRequest(ex.Message);
+            }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }  
+        }
+
+        [HttpGet("GetReviews")]
+        public IActionResult GetReviews()
+        {
+            try
+            {
+                var reviews = _unitOfWork.ReviewRepository.GetAll(
+                    includeProperties: "ApplicationUser,Book", 
+                    orderBy: x => x.OrderByDescending(x => x.Created));
+
+                return Ok(reviews);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }

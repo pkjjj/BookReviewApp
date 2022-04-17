@@ -43,7 +43,8 @@ namespace BooksReviewApp
             services.AddDbContext<BookReviewerDataContext>(options =>
             {
                 options.UseSqlServer(Configuration.GetConnectionString("BooksReviewerDB"));
-                options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+                //options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+                options.LogTo(Console.WriteLine, LogLevel.Debug);
             });
             services.AddAutoMapper(typeof(Startup));
 
@@ -68,6 +69,7 @@ namespace BooksReviewApp
                 options.User.RequireUniqueEmail = true;
             })
              .AddEntityFrameworkStores<BookReviewerDataContext>();
+            
 
             var jwtSettings = Configuration.GetSection("JwtSettings");
             services.AddAuthentication(opt =>

@@ -18,10 +18,10 @@ namespace Entities.Context
             modelBuilder.ApplyConfiguration(new BookConfiguration());
             modelBuilder.ApplyConfiguration(new ReviewConfiguration());
 
-            modelBuilder.Entity<Review>()
-                        .HasOne(r => r.ApplicationUser)
-                        .WithMany(r => r.Reviews)
-                        .HasForeignKey(n => n.ApplicationUserId);
+            //modelBuilder.Entity<Review>()
+            //            .HasOne(r => r.ApplicationUser)
+            //            .WithMany(r => r.Reviews)
+            //            .HasForeignKey(n => n.ApplicationUserId);
             //modelBuilder.Entity<ApplicationUser>()
             //            .HasMany(r => r.Reviews)
             //            .WithOne(r => r.ApplicationUser);

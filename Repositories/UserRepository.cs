@@ -12,25 +12,16 @@ namespace Repositories
 {
     public class UserRepository: GenericRepository<ApplicationUser>
     {
-        private readonly BookReviewerDataContext _context;
-        public UserRepository(BookReviewerDataContext context) : base(context)
-        {
-            _context = context;
-        }
+        public UserRepository(BookReviewerDataContext context) : base(context) { }
 
-        public IEnumerable<ApplicationUser> GetAll(Expression<Func<ApplicationUser, bool>> filter)
+        public IEnumerable<ApplicationUser> GetAll(Expression<Func<ApplicationUser, bool>> filter = null, string includeProperties = "")
         {
             return base.GetAll(filter: filter);
         }
 
-        public IEnumerable<ApplicationUser> GetAll(string includeProperty)
+        public ApplicationUser GetById(Expression<Func<ApplicationUser, bool>> filter, string includeProperties)
         {
-            return base.GetAll(includeProperties: includeProperty);
-        }
-
-        public ApplicationUser GetById(Guid id)
-        {
-            return base.GetByID(id.ToString());
+            return base.GetByID(includeProperties, filter);
         }
 
         public override ApplicationUser GetByOneByFilter(Expression<Func<ApplicationUser, bool>> filter)

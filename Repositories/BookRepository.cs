@@ -30,13 +30,6 @@ namespace Repositories
             return base.GetAll(filter: filter, includeProperties: includeProperty);
         }
 
-        public override IEnumerable<Book> GetAllWithIncludedProperties<TProperty,TSecondProperty>(
-            Expression<Func<Book, IEnumerable<TProperty>>> parent,
-            Expression<Func<TProperty, TSecondProperty>> child)
-        {
-            return base.GetAllWithIncludedProperties(parent, child);
-        }
-
         public Book GetById(Guid id)
         {
             return base.GetByID(id);          
