@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace BooksReviewApp
 {
@@ -43,6 +44,7 @@ namespace BooksReviewApp
             services.AddDbContext<BookReviewerDataContext>(options =>
             {
                 options.UseSqlServer(Configuration.GetConnectionString("BooksReviewerDB"));
+                
                 //options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
                 options.LogTo(Console.WriteLine, LogLevel.Debug);
             });
@@ -95,11 +97,11 @@ namespace BooksReviewApp
             services.AddMemoryCache();
 
             services.AddScoped<JwtHandler>();
-            
 
             services.AddControllers()
-                .AddNewtonsoftJson(options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
-
+                .AddNewtonsoftJson(options => {
+                    options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+                });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

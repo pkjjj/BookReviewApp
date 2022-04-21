@@ -30,9 +30,20 @@ namespace BooksReviewApp.Controllers
         {
             try
             {
-                var books = _unitOfWork.BookRepository.GetAll("Reviews,Users");
+                var books = _unitOfWork.BookRepository.GetAll(
+                    includeProperties: "Reviews,Users");
 
-                var booksDto = _mapper.Map<IEnumerable<BookDto>>(books);
+                var filteredBooks = books
+                    .ToList()
+                    .Select(u =>
+                    {
+                        var result = u;
+                        result.Reviews = u.Reviews.OrderByDescending(x => x.Created);
+
+                        return result;
+                    });
+
+                var booksDto = _mapper.Map<IEnumerable<BookDto>>(filteredBooks);
 
                 return Ok(booksDto);
             }
@@ -47,9 +58,11 @@ namespace BooksReviewApp.Controllers
         {
             try
             {
-                var book = _unitOfWork.BookRepository.GetById(book => book.Id == id, "Users");
+                var book = _unitOfWork.BookRepository.GetById(book => book.Id == id, "Users,Reviews.ApplicationUser,Reviews.Book");
 
-                book.Reviews = _unitOfWork.ReviewRepository.GetAll(filter: review => review.BookId == id, includeProperties: "Book,ApplicationUser");
+                //book.Reviews = _unitOfWork.ReviewRepository.GetAll(filter: review => review.BookId == id, includeProperties: "Book,ApplicationUser");
+
+                book.Reviews = book.Reviews.OrderByDescending(r => r.Created);
 
                 var bookDto = _mapper.Map<BookDto>(book);
 

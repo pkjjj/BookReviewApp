@@ -4,12 +4,15 @@ using Entities.DTO;
 using Entities.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using Repositories.Interfaces;
 using System;
 using System.Data.Common;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace BooksReviewApp.Controllers
 {
@@ -63,6 +66,41 @@ namespace BooksReviewApp.Controllers
             }  
         }
 
+        [HttpPost("UpdateReview")]
+        public IActionResult UpdateReview([FromBody] ReviewDto reviewFromResponse)
+        {
+            try
+            {
+                if (reviewFromResponse == null || !ModelState.IsValid)
+                    return BadRequest();
+
+                var review = _mapper.Map<Review>(reviewFromResponse);
+
+                var reviewById = _unitOfWork.ReviewRepository.GetByID(review.Id);
+
+                if (reviewById == null)
+                {
+                    return NoContent();
+                }
+
+                reviewById = review;
+
+                _unitOfWork.ReviewRepository.Update(reviewById);
+
+                _unitOfWork.Save();
+
+                return StatusCode(201);
+            }
+            catch (NullReferenceException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpGet("GetReviews")]
         public IActionResult GetReviews()
         {
@@ -79,5 +117,61 @@ namespace BooksReviewApp.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpGet("GetReviewsByUserId")]
+        public IActionResult GetReviewsByUserId([FromQuery] string Id)
+        {
+            try
+            {    
+                var reviews = _unitOfWork.ReviewRepository.GetAll(
+                      filter: x => x.ApplicationUserId == Id,
+                      includeProperties: "ApplicationUser,Book",
+                      orderBy: x => x.OrderByDescending(x => x.Created));
+
+                if (reviews == null)
+                {
+                    return NoContent();
+                }
+
+                //var result = JsonConvert.SerializeObject(reviews, new JsonSerializerSettings { MaxDepth = 1, ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+
+                //var result = JsonSerializer.Serialize(reviews, new JsonSerializerOptions { ReferenceHandler = ReferenceHandler.Preserve });
+
+                return Ok(reviews);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("GetReviewsByBookId")]
+        public IActionResult GetReviewsByBookId([FromQuery] string Id)
+        {
+            try
+            {
+                if (Guid.TryParse(Id, out Guid BookId))
+                {
+                    var reviews = _unitOfWork.ReviewRepository.GetAll(
+                    filter: x => x.BookId == BookId,
+                    includeProperties: "ApplicationUser,Book",
+                    orderBy: x => x.OrderByDescending(x => x.Created));
+
+                    if (reviews == null)
+                    {
+                        return NoContent();
+                    }
+
+                    return Ok(reviews);
+                }
+
+                return BadRequest("Not valid Id");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
+
 }

@@ -4,6 +4,7 @@ using Entities.DTO;
 using Microsoft.AspNetCore.Mvc;
 using Repositories.Interfaces;
 using System;
+using System.Linq;
 
 namespace BooksReviewApp.Controllers
 {
@@ -24,7 +25,11 @@ namespace BooksReviewApp.Controllers
         {
             if (Guid.TryParse(id, out Guid guidId))
             {
-                var user = _unitOfWork.UserRepository.GetById(includeProperties: "Reviews,Books", filter: x => x.Id == guidId.ToString());
+                var user = _unitOfWork.UserRepository.GetById(
+                    includeProperties: "Books,Reviews.Book", 
+                    filter: x => x.Id == guidId.ToString());
+
+                user.Reviews = user.Reviews.OrderByDescending(x => x.Created);
 
                 if (user == null)
                 {

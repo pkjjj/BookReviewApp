@@ -68,10 +68,8 @@ namespace Repositories
             foreach (var includeProperty in includeProperties.Split
                 (new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
             {
-                query = query.Include(includeProperty).AsNoTracking();
+                query = query.Include(includeProperty);
             }
-
-            var list = query.ToList();
 
             return query.FirstOrDefault(filter);
         }
