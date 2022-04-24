@@ -12,5 +12,6 @@ namespace Entities.DTO
         public string Password { get; set; }
         public byte[] Avatar { get; set; }
         public IEnumerable<ReviewDto> Reviews { get; set; }
+        public IEnumerable<BookDto> Books { get; set; }
     }
 }

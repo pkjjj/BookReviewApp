@@ -38,6 +38,7 @@ namespace BooksReviewApp.Controllers
 
                 var userDto = _mapper.Map<ApplicationUserDto>(user);
 
+                userDto.Books = _mapper.Map<IEnumerable<BookDto>>(userDto.Books);
                 userDto.Reviews = _mapper.Map<IEnumerable<ReviewDto>>(userDto.Reviews);
                 userDto.Reviews = userDto.Reviews.OrderByDescending(x => x.Created);
 
@@ -54,7 +55,9 @@ namespace BooksReviewApp.Controllers
         {
             try 
             {
-                var user = _unitOfWork.UserRepository.GetByID(id);
+                var user = _unitOfWork.UserRepository.GetById(
+                   includeProperties: "Books",
+                   filter: x => x.Id == id);
 
                 if (user == null)
                 {
@@ -101,7 +104,6 @@ namespace BooksReviewApp.Controllers
                     if (user.Books.Count() != initialBookCount)
                     {
                         _unitOfWork.UserRepository.Update(user);
-
                         _unitOfWork.Save();
                     }
 
@@ -112,6 +114,51 @@ namespace BooksReviewApp.Controllers
                     return BadRequest("Id forms is not valid");
                 }
                     
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+        
+        [HttpPatch("DeleteUserBook/{bookId}/{userId}")]
+        public IActionResult DeleteUserBook(string bookId, string userId)
+        {
+            try
+            {
+                if (Guid.TryParse(bookId, out Guid guidId))
+                {
+                    var book = _unitOfWork.BookRepository.GetById(guidId);
+
+                    if (book == null)
+                        return BadRequest("Book doesn't exist");
+
+                    var user = _unitOfWork.UserRepository.GetById(
+                    includeProperties: "Books",
+                    filter: x => x.Id == userId);
+
+                    if (user == null)
+                        return BadRequest("User doesn't exist");
+
+                    if (user.Books == null)
+                        return NoContent();
+
+                    var bookForDelete = user.Books
+                        .Where(b => b.Id == guidId)
+                        .FirstOrDefault();
+
+                    user.Books.ToList().Remove(bookForDelete);
+
+                    _unitOfWork.UserRepository.Update(user);
+                    _unitOfWork.Save();
+
+                    return Ok(user);
+                }
+                else
+                {
+                    return BadRequest("Id format is not valid");
+                }
+
             }
             catch (Exception ex)
             {
