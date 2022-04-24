@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Repositories.Interfaces;
 using System;
+using System.Collections.Generic;
 using System.Data.Common;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
@@ -21,17 +22,15 @@ namespace BooksReviewApp.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly BookReviewerDataContext _context;
 
-        public ReviewController(IUnitOfWork unitOfWork, IMapper mapper, BookReviewerDataContext context)
+        public ReviewController(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _context = context;
         }
 
         [HttpPost("SaveReview")]
-        public IActionResult SaveReview([FromBody] ReviewDto reviewFromResponse)
+        public IActionResult SaveReview([FromBody] ReviewResponse reviewFromResponse)
         {
             try
             {
@@ -67,7 +66,7 @@ namespace BooksReviewApp.Controllers
         }
 
         [HttpPost("UpdateReview")]
-        public IActionResult UpdateReview([FromBody] ReviewDto reviewFromResponse)
+        public IActionResult UpdateReview([FromBody] ReviewResponse reviewFromResponse)
         {
             try
             {
@@ -83,7 +82,8 @@ namespace BooksReviewApp.Controllers
                     return NoContent();
                 }
 
-                reviewById = review;
+                reviewById.Description = review.Description;
+                reviewById.Created = review.Created;
 
                 _unitOfWork.ReviewRepository.Update(reviewById);
 
@@ -94,6 +94,35 @@ namespace BooksReviewApp.Controllers
             catch (NullReferenceException ex)
             {
                 return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpDelete("DeleteReview")]
+        public IActionResult DeleteReview([FromQuery] string Id)
+        {
+            try
+            {
+                if (Guid.TryParse(Id, out Guid reviewId))
+                {
+                    var review = _unitOfWork.ReviewRepository.GetByID(reviewId);
+
+                    if (review == null)
+                        return BadRequest("Doesn't exist review");
+
+                    _unitOfWork.ReviewRepository.Delete(reviewId);
+
+                    _unitOfWork.Save();
+
+                    return StatusCode(201);
+                }
+                else
+                {
+                    return BadRequest("Not valid format id");
+                }
             }
             catch (Exception ex)
             {
@@ -133,11 +162,9 @@ namespace BooksReviewApp.Controllers
                     return NoContent();
                 }
 
-                //var result = JsonConvert.SerializeObject(reviews, new JsonSerializerSettings { MaxDepth = 1, ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+                var reviewsDto = _mapper.Map<IEnumerable<ProfileReviewDto>>(reviews);
 
-                //var result = JsonSerializer.Serialize(reviews, new JsonSerializerOptions { ReferenceHandler = ReferenceHandler.Preserve });
-
-                return Ok(reviews);
+                return Ok(reviewsDto);
             }
             catch (Exception ex)
             {
@@ -162,7 +189,9 @@ namespace BooksReviewApp.Controllers
                         return NoContent();
                     }
 
-                    return Ok(reviews);
+                    var reviewsDto = _mapper.Map<IEnumerable<ReviewDto>>(reviews);
+
+                    return Ok(reviewsDto);
                 }
 
                 return BadRequest("Not valid Id");
