@@ -31,7 +31,7 @@ namespace BooksReviewApp.Controllers
                     includeProperties: "Books,Reviews.Book",
                     filter: x => x.Id == id);
 
-                if (user == null)
+                if (user == null)           
                 {
                     return Unauthorized(new AuthResponseDto { ErrorMessage = "Invalid Authentication" });
                 }
@@ -45,34 +45,28 @@ namespace BooksReviewApp.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest("Not valid user");
-
+                return BadRequest(ex);
             }
         }
 
-        [HttpGet("GetUser")]
+        [HttpGet("GetUserBooks")]
         public IActionResult GetUserBooks([FromQuery] string id)
         {
-            if (Guid.TryParse(id, out Guid guidId))
+            try 
             {
-                var user = _unitOfWork.UserRepository.GetById(
-                    includeProperties: "Books,Reviews.Book",
-                    filter: x => x.Id == guidId.ToString());
+                var user = _unitOfWork.UserRepository.GetByID(id);
 
                 if (user == null)
                 {
                     return Unauthorized(new AuthResponseDto { ErrorMessage = "Invalid Authentication" });
                 }
 
-                var userDto = _mapper.Map<ApplicationUserDto>(user);
-
-                userDto.Reviews = _mapper.Map<IEnumerable<ReviewDto>>(userDto.Reviews);
-                userDto.Reviews = userDto.Reviews.OrderByDescending(x => x.Created);
-
-                return Ok(userDto);
+                return Ok(user.Books);
             }
-
-            return BadRequest("Not valid user");
+            catch(Exception ex)
+            {
+                return BadRequest(ex);
+            }
         }
 
         [HttpPatch("AddBookToUser/{bookId}/{userId}")]
@@ -87,7 +81,9 @@ namespace BooksReviewApp.Controllers
                     if (book == null)
                         return BadRequest("Book doesn't exist");
 
-                    var user = _unitOfWork.UserRepository.GetByID(userId);
+                    var user = _unitOfWork.UserRepository.GetById(
+                    includeProperties: "Books",
+                    filter: x => x.Id == userId);
 
                     if (user == null)
                         return BadRequest("User doesn't exist");
@@ -95,9 +91,19 @@ namespace BooksReviewApp.Controllers
                     if (user.Books == null)
                         user.Books = new List<Book>();
 
-                    user.Books.ToList().Add(book);
+                    var initialBookCount = user.Books.Count();
 
-                    _unitOfWork.UserRepository.Update(user);
+                    user.Books = user.Books
+                        .Where(b => user.Books.All(b => b.Id != guidId))
+                        .Append(book)
+                        .ToList();
+                    
+                    if (user.Books.Count() != initialBookCount)
+                    {
+                        _unitOfWork.UserRepository.Update(user);
+
+                        _unitOfWork.Save();
+                    }
 
                     return Ok(user);
                 }
